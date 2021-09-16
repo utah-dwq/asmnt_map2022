@@ -1,0 +1,6 @@
+name: "Assessment Map Draft IR 2022"
+output_dir: "."
+output:
+  html_document:
+    theme: default
+    highlight: textmate
