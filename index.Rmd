@@ -39,18 +39,8 @@ aup$AU_DWQCat1[aup$AU_NAME=="Monroe Creek"]="Fully Supporting"
 aup$lab[aup$AU_NAME=="Monroe Creek"]="<p>AU name: Monroe Creek<br />AU ID: UT16030003-013_00<br />Assessment: Fully Supporting<br />Not Supporting Parameters: NA<br />Approved TMDL Parameters: NA<br />TMDL ID: NA"
 
 map=leaflet()%>%
-  #addWMSTiles("https://basemap.nationalmap.gov/arcgis/services/USGSTopo/MapServer/WmsServer", group = "USGS topo", options = providerTileOptions(updateWhenZooming = FALSE,updateWhenIdle = TRUE), layers = "0") %>%
-  #addWMSTiles("https://basemap.nationalmap.gov/arcgis/services/USGSHydroCached/MapServer/WmsServer", group = "Hydrography", options = providerTileOptions(updateWhenZooming = FALSE,updateWhenIdle = TRUE), layers = "0") %>%
-  #addProviderTiles("Esri.WorldImagery", group = "Satellite", options = providerTileOptions(updateWhenZooming = FALSE,updateWhenIdle = TRUE)) %>%
   addProviderTiles("Esri.WorldTopoMap", group = "World topo", options = providerTileOptions(updateWhenZooming = FALSE,updateWhenIdle = TRUE)) %>%
-  #addMapPane("underlay_polygons", zIndex = 410) %>%
   addMapPane("au_poly", zIndex = 415)  %>%
-  addMapPane("markers", zIndex = 420)  %>%
-  #addPolygons(data=wqTools::bu_poly,group="Beneficial uses",fillOpacity = 0.1,weight=3,color="green", options = pathOptions(pane = "underlay_polygons"),
-  #            popup=paste0(
-  #              "Description: ", wqTools::bu_poly$R317Descrp,
-  #              "<br> Uses: ", wqTools::bu_poly$bu_class)
-  #) %>% 
   addPolygons(data=aup[aup$AU_Cat=="3",],group="Insufficient Data AUs",fillOpacity = 0.3,weight=2,color="#a6a6a6", options = pathOptions(pane = "au_poly"),
               popup=~lab
   ) %>% 
