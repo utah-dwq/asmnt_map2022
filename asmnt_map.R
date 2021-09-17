@@ -72,8 +72,8 @@ htmlwidgets::saveWidget(map, "index.html", title="Utah 2022 Draft IR")
 
 ####################################################
 # To deploy:
-# run code and export save map as html widget
-# examine the asmnt_map.html file locally
+# run code and export save map as html widget ("index.html")
+# examine the index.html file locally
 # Commit changes to GitHub repo master branch
 
 
