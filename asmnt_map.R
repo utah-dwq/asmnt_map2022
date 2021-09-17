@@ -38,7 +38,7 @@ map=leaflet()%>%
   addPolygons(data=aup[aup$EPA_IR_CATEGORY_ID=="3",],group="Cat 3: Insufficient data",fillOpacity = 0.3,weight=2,color="#a6a6a6", options = pathOptions(pane = "au_poly"),
               popup=~lab
   ) %>% 
-  addPolygons(data=aup[aup$EPA_IR_CATEGORY_ID=="5",],group="Cat 5: TMDL required",fillOpacity = 0.3,weight=2,color="#e41a1c", options = pathOptions(pane = "au_poly"),
+  addPolygons(data=aup[aup$EPA_IR_CATEGORY_ID=="5",],group="Cat 5: Not supporting, TMDL required",fillOpacity = 0.3,weight=2,color="#e41a1c", options = pathOptions(pane = "au_poly"),
               popup=~lab
   ) %>% 
   addPolygons(data=aup[aup$EPA_IR_CATEGORY_ID=="4A",],group="Cat 4A: Approved TMDL",fillOpacity = 0.3,weight=2,color="#984ea3", options = pathOptions(pane = "au_poly"),
@@ -54,11 +54,11 @@ map=leaflet()%>%
              popup = aup$ASSESS_ID) %>%
   addCircles(data = centroids, group = "AUName",stroke=F, fill=F, label=~AU_NAME,
              popup = aup$AU_NAME)%>%
-  addLayersControl(position ="topleft",overlayGroups = c("Cat 1: Fully Supporting", "Cat 2: No evidence of impairment", "Cat 3: Insufficient data", "Cat 4A: Approved TMDL", "Cat 5: TMDL required"),
+  addLayersControl(position ="topleft",overlayGroups = c("Cat 1: Fully Supporting", "Cat 2: No evidence of impairment", "Cat 3: Insufficient data", "Cat 4A: Approved TMDL", "Cat 5: Not supporting, TMDL required"),
                                 options = leaflet::layersControlOptions(collapsed = TRUE, autoZIndex=FALSE))%>%
   addLegend("topright", 
 	colors=c("#118a11", "#255d8a", "#a6a6a6", "#984ea3", "#e41a1c"), 
-	labels = c("Cat 1: Fully Supporting", "Cat 2: No evidence of impairment", "Cat 3: Insufficient data", "Cat 4A: Approved TMDL", "Cat 5: TMDL required"),
+	labels = c("Cat 1: Fully Supporting", "Cat 2: No evidence of impairment", "Cat 3: Insufficient data", "Cat 4A: Approved TMDL", "Cat 5: Not supporting, TMDL required"),
 	title = "Assessment Category",opacity = 0.6
   )%>%
   wqTools::addMapResetButton()%>%
