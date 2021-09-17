@@ -28,73 +28,83 @@ body {
 
 
 ```{r, echo = F, out.width="100%"}
-setwd("C:\\Users\\jvander\\Documents\\R\\asmnt_map2022")
+#setwd("C:\\Users\\jvander\\Documents\\R\\asmnt_map2022")
 #setwd("C:\\Users\\ehinman\\Documents\\GitHub\\asmnt_map1820")
 library(leaflet)
 
-load("au_asmnt_dat.Rdata")
-aup$AU_DWQCat1[aup$AU_NAME=="Willard Bay Reservoir"]="Fully Supporting"
-aup$lab[aup$AU_NAME=="Willard Bay Reservoir"]="<p>AU name: Willard Bay Reservoir<br />AU ID: UT-L-16020102-004_00<br />Assessment: Fully Supporting<br />Not Supporting Parameters: NA<br />Approved TMDL Parameters: NA<br />TMDL ID: NA"
-aup$AU_DWQCat1[aup$AU_NAME=="Monroe Creek"]="Fully Supporting"
-aup$lab[aup$AU_NAME=="Monroe Creek"]="<p>AU name: Monroe Creek<br />AU ID: UT16030003-013_00<br />Assessment: Fully Supporting<br />Not Supporting Parameters: NA<br />Approved TMDL Parameters: NA<br />TMDL ID: NA"
+assessments=read.csv(file="report_draft.csv")
+
+
+assessments=within(assessments, {
+	au_label=paste0(
+		"AU name: ", ASSESSMENT_UNIT_NAME, "<br />",
+		"AU ID: ", ASSESSMENT_UNIT_ID, "<br />",
+		"Numeric category: ", EPA_IR_CATEGORY_ID, "<br />",
+		"DWQ category: ", DWQ_Category
+	)
+	param_label=paste0(PARAMETER_CODE_NAME,": ", PARAMETER_ATTAINMENT, ", ", Parameter_Status)
+	
+})
+
+au_param_labs=aggregate(param_label~ASSESSMENT_UNIT_ID+EPA_IR_CATEGORY_ID+DWQ_Category+au_label, assessments, paste, collapse = "<br/>")
+au_param_labs=within(au_param_labs, {
+	lab=paste0(au_label,"<br/> Parameters:<br/> ", param_label)
+	lab=gsub("<br/> Parameters:<br/> NA: NA, NA", "", lab)
+})
+
+aup=wqTools::au_poly
+
+centroids=sf::st_centroid(au_poly)
+
+# Note: removing these 2 never assessed AU polygons
+subset(aup, !ASSESS_ID %in% au_param_labs$ASSESSMENT_UNIT_ID)
+
+aup=merge(aup, au_param_labs, by.x="ASSESS_ID", by.y="ASSESSMENT_UNIT_ID")
+if(!dim(aup)[1]==length(unique(assessments$ASSESSMENT_UNIT_ID))){stop("Lengths do not match. Check aggregation and merging")}
 
 map=leaflet()%>%
   addProviderTiles("Esri.WorldTopoMap", group = "World topo", options = providerTileOptions(updateWhenZooming = FALSE,updateWhenIdle = TRUE)) %>%
   addMapPane("au_poly", zIndex = 415)  %>%
-  addPolygons(data=aup[aup$AU_Cat=="3",],group="Insufficient Data AUs",fillOpacity = 0.3,weight=2,color="#a6a6a6", options = pathOptions(pane = "au_poly"),
+  addPolygons(data=aup[aup$EPA_IR_CATEGORY_ID=="3",],group="Cat 3: Insufficient data",fillOpacity = 0.3,weight=2,color="#a6a6a6", options = pathOptions(pane = "au_poly"),
               popup=~lab
   ) %>% 
-  addPolygons(data=aup[aup$AU_Cat=="5",],group="Not Supporting AUs",fillOpacity = 0.3,weight=2,color="#e41a1c", options = pathOptions(pane = "au_poly"),
+  addPolygons(data=aup[aup$EPA_IR_CATEGORY_ID=="5",],group="Cat 5: TMDL required",fillOpacity = 0.3,weight=2,color="#e41a1c", options = pathOptions(pane = "au_poly"),
               popup=~lab
   ) %>% 
-  addPolygons(data=aup[aup$AU_Cat=="4A",],group="Approved TMDL AUs",fillOpacity = 0.3,weight=2,color="#984ea3", options = pathOptions(pane = "au_poly"),
+  addPolygons(data=aup[aup$EPA_IR_CATEGORY_ID=="4A",],group="Cat 4A: Approved TMDL",fillOpacity = 0.3,weight=2,color="#984ea3", options = pathOptions(pane = "au_poly"),
               popup=~lab
   ) %>% 
-  addPolygons(data=aup[aup$AU_Cat=="2",],group="No Evidence of Impairment AUs",fillOpacity = 0.3,weight=2,color="#255d8a", options = pathOptions(pane = "au_poly"),
+  addPolygons(data=aup[aup$EPA_IR_CATEGORY_ID=="2",],group="Cat 2: No evidence of impairment",fillOpacity = 0.3,weight=2,color="#255d8a", options = pathOptions(pane = "au_poly"),
               popup=~lab
   ) %>% 
-  addPolygons(data=aup[aup$AU_Cat=="1",],group="Fully Supporting AUs",fillOpacity = 0.3,weight=2,color="#118a11", options = pathOptions(pane = "au_poly"),
+  addPolygons(data=aup[aup$EPA_IR_CATEGORY_ID=="1",],group="Cat 1: Fully Supporting",fillOpacity = 0.3,weight=2,color="#118a11", options = pathOptions(pane = "au_poly"),
               popup=~lab
   ) %>% 
-  #addPolygons(data=aup[aup$AU_Cat=="Not Assessed",],group="Not Assessed AUs",fillOpacity = 0,weight=2,color="black", options = pathOptions(pane = "au_poly"),
-  #            popup=~lab
-  #) %>% 
-  #addPolygons(data=wqTools::ss_poly,group="Site-specific standards",fillOpacity = 0.1,weight=3,color="blue", options = pathOptions(pane = "underlay_polygons"),
-  #            popup=paste0("SS std: ", wqTools::ss_poly$SiteSpecif)
-  #) %>%
-  #addPolygons(data=wqTools::wmu_poly,group="Watershed management units",fillOpacity = 0.1,weight=3,color="red", options = pathOptions(pane = "underlay_polygons"),
-  #            popup=wqTools::wmu_poly$Mgmt_Unit
-  #) %>%
-  #addPolygons(data=wqTools::ut_poly,group="UT boundary",smoothFactor=3,fillOpacity = 0.2,weight=2,color="purple", options = pathOptions(pane = "underlay_polygons")) %>%
-  addCircles(data = aup, lng=~Long, lat=~Lat, group = "AUID",stroke=F, fill=F, label=~ASSESS_ID,
+  addCircles(data = centroids, group = "AUID",stroke=F, fill=F, label=~ASSESS_ID,
              popup = aup$ASSESS_ID) %>%
-  addCircles(data = aup, lng =~Long, lat =~Lat, group = "AUName",stroke=F, fill=F, label=~AU_NAME,
+  addCircles(data = centroids, group = "AUName",stroke=F, fill=F, label=~AU_NAME,
              popup = aup$AU_NAME)%>%
-  #hideGroup("Site-specific standards") %>%
-  #hideGroup("Beneficial uses") %>%
-  #hideGroup("UT boundary") %>%
-  #hideGroup("Watershed management units")%>%
-  #addLayersControl(position ="topleft",baseGroups = c("World topo","USGS topo", "Hydrography", "Satellite"),overlayGroups = c("Fully Supporting AUs","No Evidence of Impairment AUs","Insufficient Data AUs","Approved TMDL AUs","Not Supporting AUs","Not Assessed AUs","Beneficial uses", "Site-specific standards", "Watershed management units", "UT boundary"),
-  #                              options = leaflet::layersControlOptions(collapsed = TRUE, autoZIndex=FALSE))%>%
-  addLayersControl(position ="topleft",overlayGroups = c("Fully Supporting AUs","No Evidence of Impairment AUs","Insufficient Data AUs","Approved TMDL AUs","Not Supporting AUs","Not Assessed AUs"),
+  addLayersControl(position ="topleft",overlayGroups = c("Cat 1: Fully Supporting", "Cat 2: No evidence of impairment", "Cat 3: Insufficient data", "Cat 4A: Approved TMDL", "Cat 5: TMDL required"),
                                 options = leaflet::layersControlOptions(collapsed = TRUE, autoZIndex=FALSE))%>%
   addLegend("topright", 
 	colors=c("#118a11", "#255d8a", "#a6a6a6", "#984ea3", "#e41a1c"), 
-	labels = c("Fully supporting", "No evidence of impairment", "Insufficient data", "Approved TMDL", "Not supporting"),
+	labels = c("Cat 1: Fully Supporting", "Cat 2: No evidence of impairment", "Cat 3: Insufficient data", "Cat 4A: Approved TMDL", "Cat 5: TMDL required"),
 	title = "Assessment Category",opacity = 0.6
   )%>%
   wqTools::addMapResetButton()%>%
-  leaflet.extras::removeSearchFeatures() %>% 
   leaflet.extras::addSearchFeatures(
     targetGroups = c('AUID','AUName'),
     options = leaflet.extras::searchFeaturesOptions(
       zoom=12, openPopup = FALSE, firstTipSubmit = TRUE,
       autoCollapse = TRUE, hideMarkerOnCollapse = TRUE ))
-#map=leaflet() %>% addPolygons(data=wqTools::ut_poly,group="UT boundary",smoothFactor=3,fillOpacity = 0.2,weight=2,color="purple")
 map
 
-# htmlwidgets::saveWidget(file="asmnt_map_selfcontained.html", map)
-# rsconnect::deployDoc("asmnt_map_selfcontained.html", server="bookdown.org", appName="IR 2018/2020 assessment map")
+# htmlwidgets::saveWidget(file="asmnt_map2022.html", map)
+
+####################################################
+# To deploy:
+# rmarkdown::render_site("index.Rmd")
+# Commit changes to GitHub repo master branch
 
 ```
 
