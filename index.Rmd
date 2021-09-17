@@ -1,33 +1,3 @@
----
-output: 
-  flexdashboard::flex_dashboard:
-    orientation: columns
----
-
-
-<style>
-body {
-  padding-top:0px
-}
-.navbar{
-  visibility: hidden
-}
-</style>
-
-
-<style type="text/css">
-.main-container {
-  max-width: 1800px;
-  margin-left: auto;
-  margin-right: auto;
-}
-.reveal section img{
-  border-color:#000;
-}
-</style>
-
-
-```{r, echo = F, out.width="100%"}
 #setwd("C:\\Users\\jvander\\Documents\\R\\asmnt_map2022")
 #setwd("C:\\Users\\ehinman\\Documents\\GitHub\\asmnt_map1820")
 library(leaflet)
@@ -54,10 +24,10 @@ au_param_labs=within(au_param_labs, {
 
 aup=wqTools::au_poly
 
-centroids=sf::st_centroid(au_poly)
+suppressWarnings({centroids=sf::st_centroid(au_poly)})
 
 # Note: removing these 2 never assessed AU polygons
-subset(aup, !ASSESS_ID %in% au_param_labs$ASSESSMENT_UNIT_ID)
+#subset(aup, !ASSESS_ID %in% au_param_labs$ASSESSMENT_UNIT_ID)
 
 aup=merge(aup, au_param_labs, by.x="ASSESS_ID", by.y="ASSESSMENT_UNIT_ID")
 if(!dim(aup)[1]==length(unique(assessments$ASSESSMENT_UNIT_ID))){stop("Lengths do not match. Check aggregation and merging")}
@@ -97,16 +67,16 @@ map=leaflet()%>%
     options = leaflet.extras::searchFeaturesOptions(
       zoom=12, openPopup = FALSE, firstTipSubmit = TRUE,
       autoCollapse = TRUE, hideMarkerOnCollapse = TRUE ))
-map
 
-# htmlwidgets::saveWidget(file="asmnt_map2022.html", map)
+htmlwidgets::saveWidget(map, "index.html")
 
 ####################################################
 # To deploy:
-# rmarkdown::render_site("index.Rmd")
+# rmarkdown::render_site("working/directory/index.Rmd")
+# this generates a webpage in the WD
+# note you will get a warning about an empty title element, but this can be ignored.
+# examine the index.html file locally
 # Commit changes to GitHub repo master branch
-
-```
 
 
 
