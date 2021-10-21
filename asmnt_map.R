@@ -1,5 +1,4 @@
 #setwd("C:\\Users\\jvander\\Documents\\R\\asmnt_map2022")
-#setwd("C:\\Users\\ehinman\\Documents\\GitHub\\asmnt_map1820")
 library(leaflet)
 
 assessments=read.csv(file="report_draft.csv")
@@ -24,7 +23,7 @@ au_param_labs=within(au_param_labs, {
 
 aup=wqTools::au_poly
 
-suppressWarnings({centroids=sf::st_centroid(au_poly)})
+suppressWarnings({centroids=sf::st_centroid(aup)})
 
 # Note: removing these 2 never assessed AU polygons
 #subset(aup, !ASSESS_ID %in% au_param_labs$ASSESSMENT_UNIT_ID)
@@ -75,6 +74,7 @@ htmlwidgets::saveWidget(map, "index.html", title="Utah 2022 Draft IR")
 # run code and export save map as html widget ("index.html")
 # examine the index.html file locally
 # Commit changes to GitHub repo master branch
+# Deployed map should update in a minute or two
 
 
 
