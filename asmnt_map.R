@@ -67,7 +67,7 @@ map=leaflet()%>%
       zoom=12, openPopup = FALSE, firstTipSubmit = TRUE,
       autoCollapse = TRUE, hideMarkerOnCollapse = TRUE ))
 
-htmlwidgets::saveWidget(map, "index.html", title="Utah 2022 Draft IR")
+htmlwidgets::saveWidget(map, "index.html", title="Utah 2022 IR submission")
 
 ####################################################
 # To deploy:
